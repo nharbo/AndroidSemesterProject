@@ -1,4 +1,4 @@
-package com.example.blog.semesterproject;
+package com.example.blog.semesterproject.Utils;
 
 import android.os.AsyncTask;
 
