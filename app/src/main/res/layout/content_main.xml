@@ -10,27 +10,13 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.example.blog.semesterproject.MainActivity"
-    tools:showIn="@layout/app_bar_main">
+    tools:showIn="@layout/app_bar_main"
+    android:background="#4dc56c">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="All posts"
-        android:layout_centerHorizontal="true"
-        android:textSize="25dp"
-        android:id="@+id/textView2"
-        android:layout_alignParentTop="true" />
-
-    <fragment
-        android:id="@+id/allPostsFragmentList"
-        android:name="com.example.blog.semesterproject.Fragments.AllPostsFragment"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center_horizontal|bottom"
-        tools:layout="@layout/fragment_allposts_recycle"
-        android:layout_below="@+id/textView2"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true" />
+        android:id="@+id/frame_content"/>
+
 
 </RelativeLayout>

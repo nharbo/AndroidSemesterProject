@@ -1,6 +1,8 @@
 package com.example.blog.semesterproject;
 
+
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.design.widget.NavigationView;
@@ -13,8 +15,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.blog.semesterproject.Fragments.AllPostsFragment;
 import com.example.blog.semesterproject.Fragments.ComposeFragment;
-import com.example.blog.semesterproject.Utils.AjaxHelperClass;
+import com.example.blog.semesterproject.Fragments.MyPostsFragment;
+import com.example.blog.semesterproject.Utils.AjaxHelper;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -35,8 +39,12 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        AjaxHelperClass ajax = new AjaxHelperClass(this);
+        displayView(R.id.nav_allposts);
+
+        //Henter alle posts ind fra backenden, og efterfølgende viser dem i "frontpage".
+        AjaxHelper ajax = new AjaxHelper(this);
         ajax.getAllPosts();
+
 
     }
 
@@ -65,6 +73,8 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
+        Log.w("MAIN, id selected: ", "" + id);
+
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
@@ -76,25 +86,52 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
+        displayView(item.getItemId());
+        return true;
+    }
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction ft = fragmentManager.beginTransaction();
+    //Denne metode styrer hvilket view som skal vises i content_main (FrameLayout)
+    public void displayView(int viewId) {
 
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
+        Fragment fragment = null;
+        String title = getString(R.string.app_name);
 
-        if (id == R.id.nav_myposts) {
+        switch (viewId) {
+            case R.id.nav_compose:
+                fragment = new ComposeFragment();
+                title  = "Compose";
+                break;
 
-        } else if (id == R.id.nav_newpost) {
-            Log.w("BEFORE ", "replace!!");
-            ft.replace(R.id.allPostsFragmentList, ComposeFragment.newInstance()).commit();
-            Log.w("AFTER ", "replace!!");
-        } else if (id == R.id.nav_readposts) {
+            case R.id.nav_allposts:
+                fragment = new AllPostsFragment();
+                title = "All Posts";
+                break;
 
+            case R.id.nav_myposts:
+                Log.w("inside", "my case");
+                fragment = new MyPostsFragment();
+                AjaxHelper ah = new AjaxHelper(this);
+                String username = "android";
+                ah.getMyPosts(username);
+                title = "My Posts";
+                break;
+        }
+
+        if (fragment != null) {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.frame_content, fragment);
+            ft.commit();
+        }
+
+        // set the toolbar title
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(title);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
-        return true;
+
     }
+
+
 }

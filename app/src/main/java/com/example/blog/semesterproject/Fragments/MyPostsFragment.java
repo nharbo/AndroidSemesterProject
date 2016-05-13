@@ -24,44 +24,45 @@ import java.util.ArrayList;
 /**
  * Created by nicolaiharbo on 05/05/2016.
  */
-public class AllPostsFragment extends Fragment {
+public class MyPostsFragment extends Fragment {
 
     static ListView listview;
     private static RecyclerView recycle;
     private static RecyclerView.Adapter mAdapter;
     private SwipeRefreshLayout swipeContainer;
 
-    public static ArrayList<BlogPost> postlist = new ArrayList<>();
+    public static ArrayList<BlogPost> MyPostsList = new ArrayList<>();
 
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_allposts_recycle, container, false);
+        View view = inflater.inflate(R.layout.fragment_myposts_recycle, container, false);
 
         final Activity activity = (Activity) view.getContext();
 
-        recycle = (RecyclerView) view.findViewById(R.id.allposts_recyclerview);
+        recycle = (RecyclerView) view.findViewById(R.id.myposts_recyclerview);
 
-        Log.w("AllPostsFragment: ", "postlist: " + postlist.size());
+        Log.w("MyPostsFragment: ", "MyPostsList: " + MyPostsList.size());
 
         //Her sendes listen ned til adapteren, som så genererer et "card" for hver iteration.
-        mAdapter = new BlogPostAdapter(postlist);
+        mAdapter = new BlogPostAdapter(MyPostsList);
         recycle.setAdapter(mAdapter);
         recycle.setLayoutManager(new LinearLayoutManager(activity));
 
         //SWIPE TO REFRESH! Virker fordi der er lavet et SwipeRefreshLayout inde i fragment_allposts-xml'en.
-        swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipeContainer);
+        swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.MYswipeContainer);
 
         // Setup refresh listener which triggers new data loading
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 //Clearer arrayet og henter det ind igen.
-                postlist.clear();
+                MyPostsList.clear();
                 AjaxHelper ajax = new AjaxHelper(activity);
-                ajax.getAllPosts(); //((getAllPosts indeholder en refresh metode))
+                String username = "android"; //OBS!! USERNAME SKAL HENTES FRA TELEFONENS MEMORY, GEMT EFTER LOGIN!
+                ajax.getMyPosts(username); //((getMyPosts indeholder en refresh metode))
 
                 //Denne fjerner "loading" ikonet når dataen er klar
                 swipeContainer.setRefreshing(false);

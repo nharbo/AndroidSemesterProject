@@ -5,13 +5,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:id="@+id/fragment_allposts">
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/swipeContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/my_recycler_view"
+        android:id="@+id/allposts_recyclerview"
         android:scrollbars="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/allblogs_list_layout"/>
+        tools:listitem="@layout/allblogs_list_layout"
+        android:layout_marginBottom="10dp"
+        android:background="#4dc56c"
+        android:backgroundTint="@color/cardview_light_background"/>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </LinearLayout>

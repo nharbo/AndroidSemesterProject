@@ -3,30 +3,17 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_readposts"
+            android:id="@+id/nav_allposts"
             android:icon="@drawable/ic_menu_manage"
-            android:title="Read posts" />
+            android:title="All Posts" />
         <item
-            android:id="@+id/nav_newpost"
+            android:id="@+id/nav_compose"
             android:icon="@drawable/ic_menu_slideshow"
-            android:title="Write new post" />
+            android:title="Compose" />
         <item
             android:id="@+id/nav_myposts"
             android:icon="@drawable/ic_menu_slideshow"
-            android:title="My posts" />
+            android:title="My Posts" />
     </group>
-
-    <!--<item android:title="Communicate">-->
-        <!--<menu>-->
-            <!--<item-->
-                <!--android:id="@+id/nav_share"-->
-                <!--android:icon="@drawable/ic_menu_share"-->
-                <!--android:title="Share" />-->
-            <!--<item-->
-                <!--android:id="@+id/nav_send"-->
-                <!--android:icon="@drawable/ic_menu_send"-->
-                <!--android:title="Send" />-->
-        <!--</menu>-->
-    <!--</item>-->
 
 </menu>
