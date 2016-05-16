@@ -108,12 +108,13 @@ public class MainActivity extends AppCompatActivity
                 break;
 
             case R.id.nav_myposts:
-                Log.w("inside", "my case");
                 fragment = new MyPostsFragment();
-                AjaxHelper ah = new AjaxHelper(this);
-                String username = "android";
-                ah.getMyPosts(username);
                 title = "My Posts";
+
+                //Dette er for at få den rigtige brugers posts loaded.
+                AjaxHelper ah = new AjaxHelper(this);
+                String username = "android"; //Skal skiftes ud med det "rigtige" brugernavn, efter login.
+                ah.getMyPosts(username);
                 break;
         }
 

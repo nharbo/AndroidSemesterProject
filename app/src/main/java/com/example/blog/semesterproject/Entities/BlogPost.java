@@ -12,13 +12,13 @@ public class BlogPost {
     public String title;
     public String content;
     public String author;
-//    public ArrayList<Bitmap> images;
+    public String coverpicString;
 
-    public BlogPost(String author, String title, String content) {
+    public BlogPost(String author, String title, String content, String coverpicString) {
         this.author = author;
         this.title = title;
         this.content = content;
-//        this.images = images;
+        this.coverpicString = coverpicString;
     }
 
     public String getTitle() {
@@ -44,12 +44,12 @@ public class BlogPost {
     public void setAuthor(String author) {
         this.author = author;
     }
-//
-//    public ArrayList<Bitmap> getImages() {
-//        return images;
-//    }
-//
-//    public void addImage(Bitmap image) {
-//        images.add(image);
-//    }
+
+    public String getCoverpicString() {
+        return coverpicString;
+    }
+
+    public void setCoverpicString(String coverpicString) {
+        this.coverpicString = coverpicString;
+    }
 }

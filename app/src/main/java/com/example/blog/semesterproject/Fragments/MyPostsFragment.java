@@ -61,8 +61,8 @@ public class MyPostsFragment extends Fragment {
                 //Clearer arrayet og henter det ind igen.
                 MyPostsList.clear();
                 AjaxHelper ajax = new AjaxHelper(activity);
-                String username = "android"; //OBS!! USERNAME SKAL HENTES FRA TELEFONENS MEMORY, GEMT EFTER LOGIN!
-                ajax.getMyPosts(username); //((getMyPosts indeholder en refresh metode))
+                String author = "android"; //OBS!! USERNAME SKAL HENTES FRA TELEFONENS MEMORY, GEMT EFTER LOGIN!
+                ajax.getMyPosts(author); //((getMyPosts indeholder en refresh metode))
 
                 //Denne fjerner "loading" ikonet når dataen er klar
                 swipeContainer.setRefreshing(false);
