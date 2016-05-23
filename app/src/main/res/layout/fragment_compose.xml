@@ -19,11 +19,19 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add coverphoto"
+        android:text="Take pic"
         android:id="@+id/addPhotoButton"
         android:layout_alignTop="@+id/postButton"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose pic"
+        android:id="@+id/choosePhotoButton"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 
     <EditText
         android:layout_width="match_parent"
@@ -49,5 +57,11 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_below="@+id/titleInput" />
+
+    <!--Dette imageview bruges udelukkende til størrelsesangivning af billederne-->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:id="@+id/imageViewSizeForListLayout"/>
 
 </RelativeLayout>

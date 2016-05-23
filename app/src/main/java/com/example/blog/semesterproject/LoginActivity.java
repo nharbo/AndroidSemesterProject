@@ -3,6 +3,7 @@ package com.example.blog.semesterproject;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
@@ -20,6 +21,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,7 +31,13 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.blog.semesterproject.Utils.AuthHelper;
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,16 +54,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int REQUEST_READ_CONTACTS = 0;
 
     /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
-    /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
     private UserLoginTask mAuthTask = null;
+    private UserSignupTask mSignupTask = null;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -76,7 +78,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
+                    try {
+                        attemptLogin();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     return true;
                 }
 
@@ -85,10 +91,38 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         });
 
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+        Button mEmailSignUnButton = (Button) findViewById(R.id.email_sign_up_button);
+
+        //Tjekker for bruger i external storage, hvis han er der, åbnes mainactivity, hvis ikke, køres login-task og brugeren gemmes i
+        // external storage.
+        AuthHelper auth = new AuthHelper(getApplicationContext());
+        Log.w("USER IN STOREGE?", ""+auth.checkForUserInExternalStorage());
+        if (auth.checkForUserInExternalStorage()) {
+            //Åbner main-activity hvis brugeren findes i externalStorage
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            startActivity(intent);
+        }
+
+
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptLogin();
+                try {
+                    attemptLogin();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        mEmailSignUnButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    attemptSignup();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -124,6 +158,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
         }
         return false;
+
     }
 
     /**
@@ -145,65 +180,112 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
-    private void attemptLogin() {
+    private void attemptLogin() throws IOException {
 
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+        if (mAuthTask != null) {
+            return;
+        }
 
-//        if (mAuthTask != null) {
-//            return;
-//        }
-//
-//        // Reset errors.
-//        mEmailView.setError(null);
-//        mPasswordView.setError(null);
-//
-//        // Store values at the time of the login attempt.
-//        String email = mEmailView.getText().toString();
-//        String password = mPasswordView.getText().toString();
-//
-//        boolean cancel = false;
-//        View focusView = null;
-//
-//        // Check for a valid password, if the user entered one.
-//        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
-//            mPasswordView.setError(getString(R.string.error_invalid_password));
-//            focusView = mPasswordView;
-//            cancel = true;
-//        }
-//
-//        // Check for a valid email address.
-//        if (TextUtils.isEmpty(email)) {
-//            mEmailView.setError(getString(R.string.error_field_required));
-//            focusView = mEmailView;
-//            cancel = true;
-//        } else if (!isEmailValid(email)) {
-//            mEmailView.setError(getString(R.string.error_invalid_email));
-//            focusView = mEmailView;
-//            cancel = true;
-//        }
-//
-//        if (cancel) {
-//            // There was an error; don't attempt login and focus the first
-//            // form field with an error.
-//            focusView.requestFocus();
-//        } else {
-//            // Show a progress spinner, and kick off a background task to
-//            // perform the user login attempt.
-//            showProgress(true);
-//            mAuthTask = new UserLoginTask(email, password);
-//            mAuthTask.execute((Void) null);
-//        }
+        // Reset errors.
+        mEmailView.setError(null);
+        mPasswordView.setError(null);
+
+        // Store values at the time of the login attempt.
+        String username = mEmailView.getText().toString();
+        String password = mPasswordView.getText().toString();
+
+        boolean cancel = false;
+        View focusView = null;
+
+        // Check for a valid password, if the user entered one.
+        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+            mPasswordView.setError(getString(R.string.error_invalid_password));
+            focusView = mPasswordView;
+            cancel = true;
+        }
+
+        // Check for a valid username.
+        if (TextUtils.isEmpty(username)) {
+            mEmailView.setError(getString(R.string.error_field_required));
+            focusView = mEmailView;
+            cancel = true;
+        } else if (!isUsernameValid(username)) { //username må ikke være længere end 15 karakterer.
+            mEmailView.setError(getString(R.string.error_username_too_long));
+            focusView = mEmailView;
+            cancel = true;
+        }
+
+        if (cancel) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            focusView.requestFocus();
+        } else {
+            // Show a progress spinner, and kick off a background task to
+            // perform the user login attempt.
+            showProgress(true);
+            mAuthTask = new UserLoginTask(username, password);
+            mAuthTask.execute((Void) null);
+        }
     }
 
-    private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
+    private void attemptSignup() throws IOException {
+
+        if (mAuthTask != null) {
+            return;
+        }
+
+        // Reset errors.
+        mEmailView.setError(null);
+        mPasswordView.setError(null);
+
+        // Store values at the time of the login attempt.
+        String username = mEmailView.getText().toString();
+        String password = mPasswordView.getText().toString();
+
+        boolean cancel = false;
+        View focusView = null;
+
+        // Check for a valid password, if the user entered one.
+        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+            mPasswordView.setError(getString(R.string.error_invalid_password));
+            focusView = mPasswordView;
+            cancel = true;
+        }
+
+        // Check for a valid username.
+        if (TextUtils.isEmpty(username)) {
+            mEmailView.setError(getString(R.string.error_field_required));
+            focusView = mEmailView;
+            cancel = true;
+        } else if (!isUsernameValid(username)) { //username må ikke være længere end 15 karakterer.
+            mEmailView.setError(getString(R.string.error_username_too_long));
+            focusView = mEmailView;
+            cancel = true;
+        }
+
+        if (cancel) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            focusView.requestFocus();
+        } else {
+            // Show a progress spinner, and kick off a background task to
+            // perform the user login attempt.
+            showProgress(true);
+            mSignupTask = new UserSignupTask(username, password);
+            mSignupTask.execute((Void) null);
+        }
     }
 
+    //username må ikke være længere end 15 karakterer.
+    private boolean isUsernameValid(String username) {
+        if (username.length() < 15) {
+            return true;
+        } else return false;
+    }
+
+    //Password skal være længere end 4 karakterer
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return password.length() > 4;
+        return password.length() >= 4;
     }
 
     /**
@@ -296,10 +378,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         int IS_PRIMARY = 1;
     }
 
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
+    //AsyncTask som kører LOGIN (selvom Volley er asynkront)
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
         private final String mEmail;
@@ -312,25 +391,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
+
+            AuthHelper auth = new AuthHelper(getApplicationContext());
+            auth.authenticate(mEmail, mPassword);
 
             try {
-                // Simulate network access.
-                Thread.sleep(2000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if (AuthHelper.authenticated) {
+                return true;
+            } else {
                 return false;
             }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-
-            // TODO: register the new account here.
-            return true;
         }
 
         @Override
@@ -340,6 +415,96 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             if (success) {
                 finish();
+
+                String FILENAME = "username";
+
+                //Åbner outputstream til external storage
+                FileOutputStream fos = null;
+                try {
+                    fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+                    fos.write(mEmail.getBytes());
+                    fos.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    Log.w("onPostEx1", e.getMessage());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                //Åbner main-activity når brugernavnet er gemt
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            } else {
+                mPasswordView.setError(getString(R.string.error_incorrect_password));
+                mPasswordView.requestFocus();
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            mAuthTask = null;
+            showProgress(false);
+        }
+    }
+
+    //AsyncTask som kører SIGNUP (selvom Volley er asynkront)
+    public class UserSignupTask extends AsyncTask<Void, Void, Boolean> {
+
+        private final String mEmail;
+        private final String mPassword;
+
+        UserSignupTask(String email, String password) {
+            mEmail = email;
+            mPassword = password;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            AuthHelper auth = new AuthHelper(getApplicationContext());
+            auth.register(mEmail, mPassword);
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if (AuthHelper.signedUp) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            mAuthTask = null;
+            showProgress(false);
+
+            if (success) {
+                finish();
+                Toast.makeText(getApplicationContext(), "Now signed up. Welcome " + mEmail + "!", Toast.LENGTH_SHORT).show();
+
+                //Gemmer brugernavn i external storage, og åbner mainActivity
+                String FILENAME = "username";
+                //Åbner outputstream til external storage
+                FileOutputStream fos = null;
+                try {
+                    fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+                    fos.write(mEmail.getBytes());
+                    fos.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    Log.w("onPostEx1", e.getMessage());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                //Åbner main-activity når brugernavnet er gemt
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();

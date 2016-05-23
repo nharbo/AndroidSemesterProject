@@ -44,16 +44,14 @@ public class AjaxHelper {
     RequestQueue rq;
 
     public void getAllPosts() {
-
-        //Log.w("Main", "before newRequestQueue");
         rq = Volley.newRequestQueue(mContext);
-        //Log.w("Main", "after newRequestQueue, before jsonobjectreq");
         //------Ajax------
         JsonArrayRequest jor = new JsonArrayRequest(Request.Method.GET, "http://blogbackend-nh127.rhcloud.com/reader/allposts", new Response.Listener<JSONArray>() {
 
             @Override
             public void onResponse(JSONArray response) {
                 //Log.w("in reponselistener", "onResponse");
+                AllPostsFragment.postlist.clear();
                 try {
 //                            JSONArray jsoneArray = response.getJSONArray("");
                     //Log.w("Main", "inside try newRequestQueue");
@@ -66,19 +64,32 @@ public class AjaxHelper {
                             String title = jresponse.getString("title");
                             String content = jresponse.getString("content");
                             String coverpicString = "";
-                            BlogPost pb = new BlogPost(author, title, content, coverpicString);
-                            AllPostsFragment.postlist.add(pb);
-                            Log.w("htmlarray size: ", "" + AllPostsFragment.postlist.size());
+                            if (jresponse.has("latitude")) {
+                                String latitude = jresponse.getString("latitude");
+                                String longitude = jresponse.getString("longitude");
+                                BlogPost pbLoc = new BlogPost(author, title, content, coverpicString, latitude, longitude);
+                                AllPostsFragment.postlist.add(pbLoc);
+                            } else {
+                                BlogPost pb = new BlogPost(author, title, content, coverpicString);
+                                AllPostsFragment.postlist.add(pb);
+                            }
                         } else {
                             String author = jresponse.getString("author");
                             String title = jresponse.getString("title");
                             String content = jresponse.getString("content");
                             String coverpicString = jresponse.getString("coverpic");
-                            BlogPost pb = new BlogPost(author, title, content, coverpicString);
-                            AllPostsFragment.postlist.add(pb);
-                            Log.w("htmlarray size: ", "" + AllPostsFragment.postlist.size());
+                            if (jresponse.has("latitude")) {
+                                String latitude = jresponse.getString("latitude");
+                                String longitude = jresponse.getString("longitude");
+                                BlogPost pbLoc = new BlogPost(author, title, content, coverpicString, latitude, longitude);
+                                AllPostsFragment.postlist.add(pbLoc);
+                            } else {
+                                BlogPost pb = new BlogPost(author, title, content, coverpicString);
+                                AllPostsFragment.postlist.add(pb);
+                            }
                         }
                     }
+                    Log.w("htmlarray size: ", "" + AllPostsFragment.postlist.size());
                     //Listen som ligger i Fragmentet er nu fyldt op
 
                     //Her sætters den nyeste post først, ved at reverse arrayet..
@@ -104,28 +115,26 @@ public class AjaxHelper {
         //------Ajax slut------
     }
 
-    public void addNewPost(Bitmap coverpic, final String author, final String title, final String content) {
+    public void addNewPost(Bitmap coverpic, final String author, final String title, final String content, double latitude, double longitude) {
 
         if (coverpic != null) {
 
             //Her laves billedet om til et bytearray, så vi kan gemme det i db.
             ByteArrayOutputStream blob = new ByteArrayOutputStream();
-            coverpic.compress(Bitmap.CompressFormat.JPEG, 100, blob);
+//            coverpic.compress(Bitmap.CompressFormat.JPEG, 100, blob);
+            coverpic.compress(Bitmap.CompressFormat.JPEG, 80, blob);
             byte[] imageBytes = blob.toByteArray();
             final String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
             String url = "http://blogbackend-nh127.rhcloud.com/blogger/newpost/";
-            //String url = "http://localhost:3000/blogger/newpost/";
 
             Map<String, String> params = new HashMap();
-//            params.put("author", '"' + author + '"');
-//            params.put("title", '"' + title + '"');
-//            params.put("content", '"' + content + '"');
-//            params.put("coverpic", '"' + encodedImage + '"');
             params.put("author", author);
             params.put("title", title);
             params.put("content", content);
             params.put("coverpic", encodedImage);
+            params.put("latitude", "" + latitude);
+            params.put("longitude", "" + longitude);
             Boolean b = false;
             String str = String.valueOf(b);
             params.put("draft", str);
@@ -151,12 +160,12 @@ public class AjaxHelper {
 
         } else {
             String url = "http://blogbackend-nh127.rhcloud.com/blogger/newpost/";
-            //String url = "http://localhost:3000/blogger/newpost/";
 
             Map<String, String> params = new HashMap();
             params.put("author", author);
             params.put("title", title);
             params.put("content", content);
+            params.put("coverpic", "null");
             Boolean b = false;
             String str = String.valueOf(b);
             params.put("draft", str);
@@ -186,36 +195,48 @@ public class AjaxHelper {
     public void getMyPosts(String author) {
         rq = Volley.newRequestQueue(mContext);
 
-
         //------Ajax------
         JsonArrayRequest jor = new JsonArrayRequest(Request.Method.GET, "http://blogbackend-nh127.rhcloud.com/blogger/myposts/" + author, new Response.Listener<JSONArray>() {
 
             @Override
             public void onResponse(JSONArray response) {
+                MyPostsFragment.MyPostsList.clear();
                 try {
                     for (int i = 0; i < response.length(); i++) {
                         JSONObject jresponse = response.getJSONObject(i);
 
-                        if (!jresponse.has("coverpic")) {
+                        if (!jresponse.has("coverpic") || jresponse.getString("coverpic").equals("null")) {
                             String author = jresponse.getString("author");
                             String title = jresponse.getString("title");
                             String content = jresponse.getString("content");
-                            String coverpicString = "";
-                            BlogPost pb = new BlogPost(author, title, content, coverpicString);
-                            MyPostsFragment.MyPostsList.add(pb);
-                            Log.w("htmlarray size: ", "" + MyPostsFragment.MyPostsList.size());
+                            String coverpicString = "null";
+                            if (jresponse.has("latitude")) {
+                                String latitude = jresponse.getString("latitude");
+                                String longitude = jresponse.getString("longitude");
+                                BlogPost pbLoc = new BlogPost(author, title, content, coverpicString, latitude, longitude);
+                                MyPostsFragment.MyPostsList.add(pbLoc);
+                            } else {
+                                BlogPost pb = new BlogPost(author, title, content, coverpicString);
+                                MyPostsFragment.MyPostsList.add(pb);
+                            }
                         } else {
                             String author = jresponse.getString("author");
                             String title = jresponse.getString("title");
                             String content = jresponse.getString("content");
                             String coverpicString = jresponse.getString("coverpic");
-                            BlogPost pb = new BlogPost(author, title, content, coverpicString);
-                            MyPostsFragment.MyPostsList.add(pb);
-                            Log.w("htmlarray size: ", "" + MyPostsFragment.MyPostsList.size());
+                            if (jresponse.has("latitude")) {
+                                String latitude = jresponse.getString("latitude");
+                                String longitude = jresponse.getString("longitude");
+                                BlogPost pbLoc = new BlogPost(author, title, content, coverpicString, latitude, longitude);
+                                MyPostsFragment.MyPostsList.add(pbLoc);
+                            } else {
+                                BlogPost pb = new BlogPost(author, title, content, coverpicString);
+                                MyPostsFragment.MyPostsList.add(pb);
+                            }
                         }
-                        //Log.w("response: ", jresponse.toString());
-                        //Listensom ligger i Fragmentet er nu fyldt op
                     }
+                    Log.w("getMyPosts arraysize ", "is: " + MyPostsFragment.MyPostsList.size());
+                    //Listensom ligger i Fragmentet er nu fyldt op
 
                     //Her sætters den nyeste post først, ved at reverse arrayet..
                     Collections.reverse(MyPostsFragment.MyPostsList);

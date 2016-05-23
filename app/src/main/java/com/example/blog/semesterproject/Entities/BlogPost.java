@@ -13,12 +13,23 @@ public class BlogPost {
     public String content;
     public String author;
     public String coverpicString;
+    public String latitude;
+    public String longitude;
 
     public BlogPost(String author, String title, String content, String coverpicString) {
         this.author = author;
         this.title = title;
         this.content = content;
         this.coverpicString = coverpicString;
+    }
+
+    public BlogPost(String author, String title, String content, String coverpicString, String latitude, String longitude) {
+        this.author = author;
+        this.title = title;
+        this.content = content;
+        this.coverpicString = coverpicString;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public String getTitle() {
@@ -51,5 +62,21 @@ public class BlogPost {
 
     public void setCoverpicString(String coverpicString) {
         this.coverpicString = coverpicString;
+    }
+
+    public String getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(String longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
     }
 }

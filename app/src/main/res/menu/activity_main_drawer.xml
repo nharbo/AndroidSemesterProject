@@ -14,6 +14,10 @@
             android:id="@+id/nav_myposts"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="My Posts" />
+        <item
+            android:id="@+id/nav_maps"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Map" />
     </group>
 
 </menu>
